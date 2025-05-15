@@ -21,6 +21,9 @@ export default function Game() {
   const [direction, setDirection] = useState<Position>(INITIAL_DIRECTION);
   const [isGameOver, setIsGameOver] = useState(false);
   const [score, setScore] = useState(0);
+  const [playerName, setPlayerName] = useState('');
+  const [gameStarted, setGameStarted] = useState(false);
+  const [inputError, setInputError] = useState('');
 
   const generateFood = useCallback(() => {
     const newFood = {
@@ -29,6 +32,15 @@ export default function Game() {
     };
     setFood(newFood);
   }, []);
+
+  const startGame = () => {
+    if (!playerName.trim()) {
+      setInputError('請輸入您的名稱');
+      return;
+    }
+    setInputError('');
+    setGameStarted(true);
+  };
 
   const resetGame = () => {
     setSnake(INITIAL_SNAKE);
@@ -60,7 +72,7 @@ export default function Game() {
   };
 
   const moveSnake = useCallback(() => {
-    if (isGameOver) return;
+    if (isGameOver || !gameStarted) return;
 
     const newSnake = [...snake];
     const head = {
@@ -83,10 +95,12 @@ export default function Game() {
     }
 
     setSnake(newSnake);
-  }, [snake, direction, food, isGameOver, generateFood]);
+  }, [snake, direction, food, isGameOver, gameStarted, generateFood]);
 
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
+      if (!gameStarted) return;
+      
       switch (e.key) {
         case 'ArrowUp':
           if (direction.y !== 1) setDirection({ x: 0, y: -1 });
@@ -105,17 +119,55 @@ export default function Game() {
 
     window.addEventListener('keydown', handleKeyPress);
     return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [direction]);
+  }, [direction, gameStarted]);
 
   useEffect(() => {
     const gameInterval = setInterval(moveSnake, GAME_SPEED);
     return () => clearInterval(gameInterval);
   }, [moveSnake]);
 
+  if (!gameStarted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg w-[400px]">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">歡迎來到貪食蛇遊戲</h1>
+          <div className="mb-4">
+            <label htmlFor="playerName" className="block text-gray-700 mb-2">
+              請輸入您的名稱：
+            </label>
+            <input
+              type="text"
+              id="playerName"
+              value={playerName}
+              onChange={(e) => {
+                setPlayerName(e.target.value);
+                setInputError('');
+              }}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+              placeholder="您的名稱"
+            />
+            {inputError && (
+              <p className="text-red-500 text-sm mt-1">{inputError}</p>
+            )}
+          </div>
+          <button
+            onClick={startGame}
+            className="w-full px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+          >
+            開始遊戲
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
       <div className="relative flex flex-col items-center w-[400px]">
-        <div className="mb-4 text-2xl font-bold text-gray-800">分數: {score}</div>
+        <div className="mb-4 space-y-2 text-center">
+          <div className="text-xl font-bold text-gray-800">玩家：{playerName}</div>
+          <div className="text-2xl font-bold text-gray-800">分數：{score}</div>
+        </div>
         <div
           className="relative bg-white border-2 border-gray-300"
           style={{
@@ -148,6 +200,10 @@ export default function Game() {
         {isGameOver && (
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-6 rounded-lg shadow-lg text-center w-[300px]">
             <div className="text-xl font-bold text-red-500 mb-4">遊戲結束！</div>
+            <div className="mb-4">
+              <div className="font-bold text-gray-800">玩家：{playerName}</div>
+              <div className="font-bold text-gray-800">最終分數：{score}</div>
+            </div>
             <button
               onClick={resetGame}
               className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
