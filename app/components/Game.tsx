@@ -114,7 +114,7 @@ export default function Game() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="mb-4 text-2xl font-bold">分數: {score}</div>
+      <div className="mb-4 text-2xl font-bold text-gray-800">分數: {score}</div>
       <div
         className="relative bg-white border-2 border-gray-300"
         style={{
