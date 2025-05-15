@@ -6,6 +6,13 @@ type Position = {
   y: number;
 };
 
+type Score = {
+  id: number;
+  username: string;
+  score: number;
+  createdAt: string;
+};
+
 const GRID_SIZE = 20;
 const CELL_SIZE = 20;
 const INITIAL_SNAKE = [
@@ -24,6 +31,48 @@ export default function Game() {
   const [playerName, setPlayerName] = useState('');
   const [gameStarted, setGameStarted] = useState(false);
   const [inputError, setInputError] = useState('');
+  const [highScores, setHighScores] = useState<Score[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const fetchHighScores = async () => {
+    try {
+      const response = await fetch('/api/scores');
+      if (response.ok) {
+        const data = await response.json();
+        setHighScores(data);
+      }
+    } catch (error) {
+      console.error('Error fetching high scores:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchHighScores();
+  }, []);
+
+  const saveScore = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch('/api/scores', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: playerName,
+          score: score,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchHighScores();
+      }
+    } catch (error) {
+      console.error('Error saving score:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const generateFood = useCallback(() => {
     const newFood = {
@@ -82,6 +131,7 @@ export default function Game() {
 
     if (checkCollision(head)) {
       setIsGameOver(true);
+      saveScore();
       return;
     }
 
@@ -131,6 +181,25 @@ export default function Game() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg w-[400px]">
           <h1 className="text-2xl font-bold text-gray-800 mb-6 text-center">歡迎來到貪食蛇遊戲</h1>
+          <div className="mb-6">
+            <h2 className="text-xl font-bold text-gray-800 mb-3">最高分排行榜</h2>
+            <div className="bg-gray-50 p-4 rounded-lg">
+              {highScores.length > 0 ? (
+                <ul className="space-y-2">
+                  {highScores.map((score, index) => (
+                    <li key={score.id} className="flex justify-between items-center">
+                      <span className="text-gray-800">
+                        {index + 1}. {score.username}
+                      </span>
+                      <span className="font-bold text-gray-800">{score.score}</span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-gray-600 text-center">暫無分數記錄</p>
+              )}
+            </div>
+          </div>
           <div className="mb-4">
             <label htmlFor="playerName" className="block text-gray-700 mb-2">
               請輸入您的名稱：
@@ -206,9 +275,10 @@ export default function Game() {
             </div>
             <button
               onClick={resetGame}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              disabled={isLoading}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-blue-300"
             >
-              重新開始
+              {isLoading ? '儲存分數中...' : '重新開始'}
             </button>
           </div>
         )}
