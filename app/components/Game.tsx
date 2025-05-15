@@ -114,47 +114,49 @@ export default function Game() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="mb-4 text-2xl font-bold text-gray-800">分數: {score}</div>
-      <div
-        className="relative bg-white border-2 border-gray-300"
-        style={{
-          width: GRID_SIZE * CELL_SIZE,
-          height: GRID_SIZE * CELL_SIZE,
-        }}
-      >
-        {snake.map((segment, index) => (
+      <div className="relative flex flex-col items-center w-[400px]">
+        <div className="mb-4 text-2xl font-bold text-gray-800">分數: {score}</div>
+        <div
+          className="relative bg-white border-2 border-gray-300"
+          style={{
+            width: GRID_SIZE * CELL_SIZE,
+            height: GRID_SIZE * CELL_SIZE,
+          }}
+        >
+          {snake.map((segment, index) => (
+            <div
+              key={index}
+              className="absolute bg-green-500"
+              style={{
+                left: segment.x * CELL_SIZE,
+                top: segment.y * CELL_SIZE,
+                width: CELL_SIZE,
+                height: CELL_SIZE,
+              }}
+            />
+          ))}
           <div
-            key={index}
-            className="absolute bg-green-500"
+            className="absolute bg-red-500"
             style={{
-              left: segment.x * CELL_SIZE,
-              top: segment.y * CELL_SIZE,
+              left: food.x * CELL_SIZE,
+              top: food.y * CELL_SIZE,
               width: CELL_SIZE,
               height: CELL_SIZE,
             }}
           />
-        ))}
-        <div
-          className="absolute bg-red-500"
-          style={{
-            left: food.x * CELL_SIZE,
-            top: food.y * CELL_SIZE,
-            width: CELL_SIZE,
-            height: CELL_SIZE,
-          }}
-        />
-      </div>
-      {isGameOver && (
-        <div className="mt-4">
-          <div className="text-xl font-bold text-red-500 mb-2">遊戲結束！</div>
-          <button
-            onClick={resetGame}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            重新開始
-          </button>
         </div>
-      )}
+        {isGameOver && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/90 p-6 rounded-lg shadow-lg text-center w-[300px]">
+            <div className="text-xl font-bold text-red-500 mb-4">遊戲結束！</div>
+            <button
+              onClick={resetGame}
+              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              重新開始
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 } 
